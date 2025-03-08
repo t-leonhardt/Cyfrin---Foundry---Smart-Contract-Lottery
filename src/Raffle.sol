@@ -32,6 +32,7 @@ pragma solidity 0.8.19;
  */
 
 contract Raffle{
+    error Raffle__NotEnoughETH();
 
     uint256 private immutable i_entranceFee;
 
@@ -39,7 +40,9 @@ contract Raffle{
         i_entranceFee = entranceFee;
     }
     function enterRaffle() public payable{
-
+        if(msg.value < i_entranceFee){
+            revert Raffle__NotEnoughETH();
+        }
     }
 
     function pickWinner() public {
