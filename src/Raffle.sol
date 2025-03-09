@@ -38,6 +38,8 @@ contract Raffle{
     address payable[] private s_players;
     // must be payable sice the winner is going to receive "money"
 
+    event RaffleEntered(address indexed player);
+
     constructor(uint256 entranceFee){
         i_entranceFee = entranceFee;
     }
@@ -46,6 +48,8 @@ contract Raffle{
             revert Raffle__NotEnoughETH();
         }
         s_players.push(payable(msg.sender));
+
+        emit RaffleEntered(msg.sender);
     }
 
     function pickWinner() public {
