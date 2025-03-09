@@ -35,6 +35,8 @@ contract Raffle{
     error Raffle__NotEnoughETH();
 
     uint256 private immutable i_entranceFee;
+    address payable[] private s_players;
+    // must be payable sice the winner is going to receive "money"
 
     constructor(uint256 entranceFee){
         i_entranceFee = entranceFee;
@@ -43,6 +45,7 @@ contract Raffle{
         if(msg.value < i_entranceFee){
             revert Raffle__NotEnoughETH();
         }
+        s_players.push(payable(msg.sender));
     }
 
     function pickWinner() public {
