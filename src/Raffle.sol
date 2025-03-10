@@ -105,7 +105,7 @@ contract Raffle is VRFConsumerBaseV2Plus{
         uint256 requestId = s_vrfCoordinator.requestRandomWords(request);
     }
 
-    function fulfillRandomWords(uint256 requestId, uint256[] calldata randomWords) internal virtual override{}
+    function fulfillRandomWords(uint256 requestId, uint256[] calldata randomWords) internal override{}
 
     function getEntranceFee() external view returns(uint256){
         return i_entranceFee;
