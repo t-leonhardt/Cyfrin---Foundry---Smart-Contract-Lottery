@@ -38,6 +38,7 @@ import {console} from "forge-std/Test.sol";
 
 contract Raffle is VRFConsumerBaseV2Plus{
     error Raffle__NotEnoughETH();
+    error Raffle__Failed();
 
     uint256 private immutable i_entranceFee;
     uint256 private immutable i_interval; 
@@ -55,6 +56,7 @@ contract Raffle is VRFConsumerBaseV2Plus{
     // describes the maximum of gas willing to spend 
     uint32 private constant NUM_WORDS = 1; 
     // describes the number of random numbers requested 
+    address private s_recentWinner;
 
 
     event RaffleEntered(address indexed player);
@@ -105,7 +107,15 @@ contract Raffle is VRFConsumerBaseV2Plus{
         uint256 requestId = s_vrfCoordinator.requestRandomWords(request);
     }
 
-    function fulfillRandomWords(uint256 requestId, uint256[] calldata randomWords) internal override{}
+    function fulfillRandomWords(uint256 requestId, uint256[] calldata randomWords) internal override{
+        uint256 indexOfWinner = randomWords[0] % s_players.length;
+        address payable recentWinner = s_players[indexOfWinner];
+        s_recentWinner = recentWinner;
+        (bool success,) = recentWinner.call{value: address(this).balance}("");
+        if (!success){
+            revert Raffle__Failed();
+        }
+    }
 
     function getEntranceFee() external view returns(uint256){
         return i_entranceFee;
