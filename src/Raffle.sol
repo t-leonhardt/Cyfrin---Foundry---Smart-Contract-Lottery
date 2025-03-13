@@ -40,6 +40,7 @@ contract Raffle is VRFConsumerBaseV2Plus{
     error Raffle__NotEnoughETH();
     error Raffle__Failed();
     error Raffle__RaffleNotOpen();
+    error Raffle__UpkeepNotNeeded(uint256 balance, uint256 playersLength, uint256 raffleState);
 
     enum RaffleState{
         OPEN,               // 0
@@ -110,9 +111,40 @@ contract Raffle is VRFConsumerBaseV2Plus{
         emit RaffleEntered(msg.sender);
     }
 
-    function pickWinner() external {
-        if ((block.timestamp - s_lastTimeStamp) < i_interval){
-            revert();
+    /**
+     * @dev This is the function that will be called by the Chainlink node
+     * to determine if the lottery is ready for a winner to be picked
+     * 
+     * The following must be true for the upkeepNeeded to be true:
+     * 1. The time interval has passed between the raffle runs 
+     * 2. The lottery is open
+     * 3. The contract has ETH
+     * 4. Implicitly, your subscription has LINK
+     * 
+     * @param - ignored
+     * @return upkeepNeeded - true if it is time to restart the raffle  
+     * @return - ignored 
+     */
+    function checkUpkeep( bytes memory /* checkData */) 
+    public view returns(bool upkeepNeeded, bytes memory /* performData */){
+        // /* ... */ is used to signalize that a variable is not used 
+
+        bool timeHasPassed = ((block.timestamp - s_lastTimeStamp) < i_interval);
+        bool isOpen = s_raffleState == RaffleState.OPEN;
+        bool hasBalance = address(this).balance > 0;
+        bool hasPlayers = s_players.length > 0;
+
+        upkeepNeeded = timeHasPassed && isOpen && hasBalance && hasPlayers;
+
+        return (upkeepNeeded, "");
+    }
+
+    function performUpkeep /* pickWinner */ (bytes calldata /* performData */ ) external {
+        (bool upkeepNeeded,) = checkUpkeep("");
+        if (!upkeepNeeded){
+            revert Raffle__UpkeepNotNeeded(address(this).balance, s_players.length, uint256(s_raffleState));
+            // Custom errros can have parameters to give more information on
+            // why an error is thrown 
         }
 
         s_raffleState = RaffleState.CALCULATING;
@@ -129,12 +161,12 @@ contract Raffle is VRFConsumerBaseV2Plus{
             }
         );
 
-        uint256 requestId = s_vrfCoordinator.requestRandomWords(request);
+        s_vrfCoordinator.requestRandomWords(request);
     }
 
     // Convention: CEI which stands for: Checks, Effects, Interactions
 
-    function fulfillRandomWords(uint256 requestId, uint256[] calldata randomWords) internal override{
+    function fulfillRandomWords(uint256 /* requestId */, uint256[] calldata randomWords) internal override{
         // Checks (do some checks; name is straight forward)
         // usually requires and conditionals 
 
