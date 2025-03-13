@@ -132,7 +132,13 @@ contract Raffle is VRFConsumerBaseV2Plus{
         uint256 requestId = s_vrfCoordinator.requestRandomWords(request);
     }
 
+    // Convention: CEI which stands for: Checks, Effects, Interactions
+
     function fulfillRandomWords(uint256 requestId, uint256[] calldata randomWords) internal override{
+        // Checks (do some checks; name is straight forward)
+        // usually requires and conditionals 
+
+        //Effects => Internal Contract Interactions/changes; variables that are changed 
         uint256 indexOfWinner = randomWords[0] % s_players.length;
         address payable recentWinner = s_players[indexOfWinner];
         s_recentWinner = recentWinner;
@@ -140,13 +146,15 @@ contract Raffle is VRFConsumerBaseV2Plus{
         s_raffleState = RaffleState.OPEN;
         s_players = new address payable[](0);
         s_lastTimeStamp = block.timestamp;
+        emit WinnerPicked(s_recentWinner);
+        // was moved because of CEI convention 
+        // emit is an internal contract interaction 
 
+        //Interactions => External Contract Interactions 
         (bool success,) = recentWinner.call{value: address(this).balance}("");
         if (!success){
             revert Raffle__Failed();
         }
-
-        emit WinnerPicked(s_recentWinner);
     }
 
     function getEntranceFee() external view returns(uint256){
