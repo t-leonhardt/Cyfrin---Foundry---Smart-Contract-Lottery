@@ -39,6 +39,14 @@ import {console} from "forge-std/Test.sol";
 contract Raffle is VRFConsumerBaseV2Plus{
     error Raffle__NotEnoughETH();
     error Raffle__Failed();
+    error Raffle__RaffleNotOpen();
+
+    enum RaffleState{
+        OPEN,               // 0
+        CALCULATING         // 1
+    }
+    // enum is a method that permits the declaration of types
+    // whatever is in the brackets describes the possible values 
 
     uint256 private immutable i_entranceFee;
     uint256 private immutable i_interval; 
@@ -57,13 +65,20 @@ contract Raffle is VRFConsumerBaseV2Plus{
     uint32 private constant NUM_WORDS = 1; 
     // describes the number of random numbers requested 
     address private s_recentWinner;
+    RaffleState private s_raffleState; 
 
 
     event RaffleEntered(address indexed player);
 
-    constructor(uint256 entranceFee, uint256 interval, address _vrfCoordinator, 
-    bytes32 gasLane,  uint256 subScriptionId, uint32 callbackGasLimit) 
-    VRFConsumerBaseV2Plus (_vrfCoordinator){
+    constructor(
+        uint256 entranceFee, 
+        uint256 interval, 
+        address _vrfCoordinator, 
+        bytes32 gasLane,
+        uint256 subScriptionId, 
+        uint32 callbackGasLimit
+        ) 
+        VRFConsumerBaseV2Plus (_vrfCoordinator){
         // when a child calss has a constrcutor and the parent class
         // also has a constructor, the child class must include 
         // the parents constructor in their constructor 
@@ -76,12 +91,19 @@ contract Raffle is VRFConsumerBaseV2Plus{
         i_keyHash = gasLane;
         i_subscriptionId = subScriptionId;
         i_callbackGasLimit = callbackGasLimit;
+
+        s_raffleState = RaffleState.OPEN;
     }
 
     function enterRaffle() public payable{
         if(msg.value < i_entranceFee){
             revert Raffle__NotEnoughETH();
         }
+
+        if(s_raffleState != RaffleState.OPEN){
+            revert Raffle__RaffleNotOpen();
+        }
+
         s_players.push(payable(msg.sender));
 
         emit RaffleEntered(msg.sender);
@@ -91,6 +113,8 @@ contract Raffle is VRFConsumerBaseV2Plus{
         if ((block.timestamp - s_lastTimeStamp) < i_interval){
             revert();
         }
+
+        s_raffleState = RaffleState.CALCULATING;
 
         VRFV2PlusClient.RandomWordsRequest memory request =
             VRFV2PlusClient.RandomWordsRequest({
