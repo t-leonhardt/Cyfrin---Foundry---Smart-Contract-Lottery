@@ -4,6 +4,7 @@ pragma solidity ^0.8.19;
 
 import {Script} from "forge-std/Script.sol";
 import {VRFCoordinatorV2Mock} from "../lib/chainlink-brownie-contracts/contracts/src/v0.8/mocks/VRFCoordinatorV2Mock.sol";
+import {LinkToken} from "../test/mocks/LinkToekn.sol";
 
 abstract contract CodeConstants{
     // Values for Mock
@@ -25,6 +26,7 @@ contract HelperConfig is CodeConstants, Script{
         bytes32 gasLane;
         uint32 callbackGasLimit;
         uint256 subscriptionID;
+        address link;
     }
 
     NetworkConfig public localNetworkConfig;
@@ -51,7 +53,8 @@ contract HelperConfig is CodeConstants, Script{
             vrfCoordinator: 0x9DdfaCa8183c41ad55329BdeeD9F6A8d53168B1B,
             gasLane: 0x787d74caea10b2b357790d5b5247c2f63d1d91572a9846f780606e4d953677ae,
             callbackGasLimit: 50000,
-            subscriptionID: 0
+            subscriptionID: 0,
+            link: 0x779877A7B0D9E8603169DdbD7836e478b4624789
         });
     }
 
@@ -65,6 +68,7 @@ contract HelperConfig is CodeConstants, Script{
             MOCK_BASE_FEE,
             MOCK_GAS_PRICE_LINK
         );
+        LinkToken linkToken = new LinkToken();
         vm.stopBroadcast();
 
         localNetworkConfig = NetworkConfig({
@@ -73,7 +77,8 @@ contract HelperConfig is CodeConstants, Script{
             vrfCoordinator: address(vrfCoordinatorMock),
             gasLane: 0x787d74caea10b2b357790d5b5247c2f63d1d91572a9846f780606e4d953677ae, // does not matter if changed
             callbackGasLimit: 50000,
-            subscriptionID: 0 // fix later 
+            subscriptionID: 0,
+            link: address(linkToken)
         });
 
         return localNetworkConfig;
