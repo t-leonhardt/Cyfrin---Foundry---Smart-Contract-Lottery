@@ -3,6 +3,7 @@ pragma solidity ^0.8.19;
 import {Script} from "forge-std/Script.sol";
 import {Raffle} from "../src/Raffle.sol";
 import {HelperConfig} from "./HelperConfig.s.sol";
+import {CreateSubscritption} from "./Interactions.s.sol";
 
 
 contract DeployRaffle is Script{
@@ -13,6 +14,13 @@ contract DeployRaffle is Script{
         // helperconfig contract 
         HelperConfig.NetworkConfig memory config = helperConfig.getConfig();
         // network config 
+
+        if(config.subscriptionID == 0){
+            CreateSubscritption createSubscription = new CreateSubscritption();
+            (config.subscriptionID, config.vrfCoordinator) = createSubscription.createSubscritption(config.vrfCoordinator);
+
+        }
+
         vm.startBroadcast();
         Raffle raffle = new Raffle(
             config.entranceFee, 
