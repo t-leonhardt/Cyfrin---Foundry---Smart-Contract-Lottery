@@ -52,4 +52,25 @@ contract RaffleTest is Test{
         address playerRecorded = raffle.getPlayer(0);
         assert(playerRecorded == PLAYER);
     }
+
+    function testDontAllowPlayersToEnterRaffleWhileCalculating() public {
+        // Arrange
+        vm.prank(PLAYER);
+        raffle.enterRaffle{value: entranceFee}();
+
+        vm.warp(block.timestamp + interval + 1);
+        // cheatcode to add time 
+        // simulate time has changed
+
+        vm.roll(block.number + 1);
+        // simulate block has been added 
+
+        raffle.performUpkeep("");
+        
+        // Act / Assert 
+        vm.expectRevert(Raffle.Raffle__NotEnoughETH.selector);
+        vm.prank(PLAYER);
+        raffle.enterRaffle{value: entranceFee}();
+    }
+
 }
