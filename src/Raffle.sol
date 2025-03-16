@@ -1,3 +1,5 @@
+//SPDX-License-Identifier: MIT
+
 // the following is the commonly used layout for solidity
 
 // Layout of Contract:
