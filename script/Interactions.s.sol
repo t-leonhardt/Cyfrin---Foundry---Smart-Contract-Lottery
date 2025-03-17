@@ -69,6 +69,8 @@ contract AddConsumer is Script{
         HelperConfig helperConfig = new HelperConfig();
         uint256 subId = helperConfig.getConfig().subscriptionID;
         address vrfCoordinator = helperConfig.getConfig().vrfCoordinator;
+
+        addConsumer(mostRecentlyDeployeed, vrfCoordinator, subId);
     }
     
     function addConsumer(address contractToAddToVRF, address vrfCoordinator, uint256 subID) public{
