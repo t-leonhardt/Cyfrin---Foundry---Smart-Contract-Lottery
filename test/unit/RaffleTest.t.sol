@@ -133,8 +133,8 @@ contract RaffleTest is Test{
         assert(uint256(raffleState) == 1);
     }
 
-    function testFulfillRandomWordsCanOnlyBeCalledAfterPerformUpkeep() public raffleEntered{
+    function testFulfillRandomWordsCanOnlyBeCalledAfterPerformUpkeep(uint256 randomRequestId) public raffleEntered{
         vm.expectRevert(VRFCoordinatorV2_5Mock.InvalidRequest.selector);
-        VRFCoordinatorV2_5Mock(vrfCoordinator).fulfillRandomWords(0, address(raffle));
+        VRFCoordinatorV2_5Mock(vrfCoordinator).fulfillRandomWords(randomRequestId, address(raffle));
     }
 }

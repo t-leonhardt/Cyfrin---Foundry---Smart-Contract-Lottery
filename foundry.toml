@@ -11,4 +11,9 @@ fs_permissions = [
     {access = "read", path = "./reports"},
 ]
 
+[fuzz]
+runs = 500
+# when using fuzz, the code tries to break the test itself by using 
+# many random numbers/versions/scenarios 
+
 # See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options
