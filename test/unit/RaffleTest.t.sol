@@ -21,6 +21,19 @@ contract RaffleTest is Test{
     bytes32 gasLane;
     uint256 subScriptionId;
     uint32 callbackGasLimit;
+
+    modifier raffleEntered(){
+        vm.prank(PLAYER);
+        raffle.enterRaffle{value: entranceFee}();
+
+        vm.warp(block.timestamp + interval + 1);
+        // cheatcode to add time 
+        // simulate time has changed
+
+        vm.roll(block.number + 1);
+        // simulate block has been added 
+        _;
+    }
     
     function setUp() external {
         DeployRaffle deployer = new DeployRaffle();
@@ -56,17 +69,8 @@ contract RaffleTest is Test{
         assert(playerRecorded == PLAYER);
     }
 
-    function testDontAllowPlayersToEnterRaffleWhileCalculating() public {
+    function testDontAllowPlayersToEnterRaffleWhileCalculating() public raffleEntered{
         // Arrange
-        vm.prank(PLAYER);
-        raffle.enterRaffle{value: entranceFee}();
-
-        vm.warp(block.timestamp + interval + 1);
-        // cheatcode to add time 
-        // simulate time has changed
-
-        vm.roll(block.number + 1);
-        // simulate block has been added 
 
         raffle.performUpkeep("");
         
@@ -85,13 +89,7 @@ contract RaffleTest is Test{
         assert(!upkeepNeeded);
     }
 
-    function testCheckUpkeepReturnsFalseIfRaffleIsNotOpen() public{
-        vm.prank(PLAYER);
-        raffle.enterRaffle{value: entranceFee}();
-
-        vm.warp(block.timestamp + interval + 1);
-        vm.roll(block.number + 1);
-
+    function testCheckUpkeepReturnsFalseIfRaffleIsNotOpen() public raffleEntered{
         raffle.performUpkeep("");
 
         (bool upkeepNeeded, ) = raffle.checkUpkeep("");
@@ -99,13 +97,7 @@ contract RaffleTest is Test{
         assert(!upkeepNeeded);
     }
 
-    function testPerformUpkeepCanOnlyRunIfCheckUpkeepIsTrue() public {
-        vm.prank(PLAYER);
-        raffle.enterRaffle{value: entranceFee}();
-
-        vm.warp(block.timestamp + interval + 1);
-        vm.roll(block.number + 1);
-
+    function testPerformUpkeepCanOnlyRunIfCheckUpkeepIsTrue() public raffleEntered{
         raffle.performUpkeep("");
     }
 
@@ -125,13 +117,7 @@ contract RaffleTest is Test{
         raffle.performUpkeep("");
     }
 
-    function testPerformUpkeepUpdatesRaffleStateAndEmitsRequestId() public {
-        vm.prank(PLAYER);
-        raffle.enterRaffle{value: entranceFee}();
-
-        vm.warp(block.timestamp + interval + 1);
-        vm.roll(block.number + 1);
-
+    function testPerformUpkeepUpdatesRaffleStateAndEmitsRequestId() public raffleEntered{
         vm.recordLogs();
         // name is self explanatory; it records the logs 
 
